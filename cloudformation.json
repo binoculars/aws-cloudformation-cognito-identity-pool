@@ -1,0 +1,346 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Parameters": {
+		"AllowUnauthenticatedIdentities": {
+			"Type": "String",
+			"Description": "TRUE if the identity pool supports unauthenticated logins.",
+			"AllowedValues": [
+				"true",
+				"false"
+			]
+		},
+		"IdentityPoolName": {
+			"Type": "String",
+			"MinLength": 1,
+			"Description": "The name for the Cognito Identity Pool"
+		},
+		"CognitoIdentityProviders": {
+			"Type": "String",
+			"AllowedPattern": "^$|^\\[(,?\\{\\\"ClientId\\\":\\\".*\\\",\\\"ProviderName\\\":\\\".*\\\"\\})+\\]$",
+			"Default": "",
+			"Description": "a JSON string in the format Array<map>. A list representing a Cognito User Identity Pool and its client ID. E.g [{ProviderName: String, ClientId: String}], where ProviderName is The provider name for a Cognito User Identity Pool. For example, cognito-idp.us-east-1.amazonaws.com/us-east-1_123456789 and ClientId is The client ID for the Cognito User Identity Pool."
+		},
+		"DeveloperProviderName": {
+			"Type": "String",
+			"AllowedPattern": "^$|^[\\w\\.\\-]+$",
+			"Default": "",
+			"Description": "The \"domain\" by which Cognito will refer to your users. This name acts as a placeholder that allows your backend and the Cognito service to communicate about the developer provider. Once you have set a developer provider name, you cannot change it. Please take care in setting this parameter."
+		},
+		"OpenIdConnectProviderARNs": {
+			"Type": "String",
+			"AllowedPattern": "^$|^\\[(,?\\\"arn:aws:iam::\\d{12}:oidc-provider\\/[a-z0-9\\.]+\\\")+\\]$",
+			"Default": "",
+			"Description": "Array<String> A list of OpendID Connect provider ARNs."
+		},
+		"SupportedLoginProviders": {
+			"Type": "String",
+			"AllowedPattern": "^$|^\\{(,?\\\"[a-z0-9\\.]+\\\":\\\".+\\\")+\\}$",
+			"Default": "",
+			"Description": "map<String> Optional key:value pairs mapping provider names to provider app IDs."
+		},
+		"LambdaS3Bucket": {
+			"Type": "String",
+			"Description": "The S3 bucket in which the lambda function code is stored"
+		},
+		"LambdaS3Key": {
+			"Type": "String",
+			"AllowedPattern": ".*\\.zip",
+			"Description": "The S3 key for the lambda function code"
+		}
+	},
+	"Conditions": {
+		"UseUnauthenticatedIdentities": {
+			"Fn::Equals": [
+				{
+					"Ref": "AllowUnauthenticatedIdentities"
+				},
+				"true"
+			]
+		},
+		"EMPTY_CognitoIdentityProviders": {
+			"Fn::Equals": [
+				{
+					"Ref": "CognitoIdentityProviders"
+				},
+				""
+			]
+		},
+		"EMPTY_DeveloperProviderName": {
+			"Fn::Equals": [
+				{
+					"Ref": "DeveloperProviderName"
+				},
+				""
+			]
+		},
+		"EMPTY_OpenIdConnectProviderARNs": {
+			"Fn::Equals": [
+				{
+					"Ref": "OpenIdConnectProviderARNs"
+				},
+				""
+			]
+		},
+		"EMPTY_SupportedLoginProviders": {
+			"Fn::Equals": [
+				{
+					"Ref": "SupportedLoginProviders"
+				},
+				""
+			]
+		}
+	},
+	"Resources": {
+		"LambdaExecutionRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": {
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "lambda.amazonaws.com"
+						},
+						"Action": "sts:AssumeRole"
+					}
+				},
+				"Path": "/",
+				"Policies": [
+					{
+						"PolicyName": "root",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": [
+										"logs:CreateLogGroup",
+										"logs:CreateLogStream",
+										"logs:PutLogEvents"
+									],
+									"Resource": "arn:aws:logs:*:*:*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"cognito-identity:CreateIdentityPool",
+										"cognito-identity:DeleteIdentityPool",
+										"cognito-identity:UpdateIdentityPool",
+										"cognito-identity:SetIdentityPoolRoles"
+									],
+									"Resource": "*"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		"Lambda": {
+			"Type": "AWS::Lambda::Function",
+			"Properties": {
+				"Code": {
+					"S3Bucket": {
+						"Ref": "LambdaS3Bucket"
+					},
+					"S3Key": {
+						"Ref": "LambdaS3Key"
+					}
+				},
+				"Handler": "index.handler",
+				"MemorySize": 128,
+				"Role": {
+					"Fn::GetAtt": [
+						"LambdaExecutionRole",
+						"Arn"
+					]
+				},
+				"Runtime": "nodejs4.3",
+				"Timeout": 30
+			}
+		},
+		"CognitoIdentityPool": {
+			"Type": "Custom::CognitoIdentityPool",
+			"Properties": {
+				"ServiceToken": {
+					"Fn::GetAtt": [
+						"Lambda",
+						"Arn"
+					]
+				},
+				"Options": {
+					"AllowUnauthenticatedIdentities": {
+						"Ref": "AllowUnauthenticatedIdentities"
+					},
+					"IdentityPoolName": {
+						"Ref": "IdentityPoolName"
+					},
+					"CognitoIdentityProviders": {
+						"Fn::If": [
+							"EMPTY_CognitoIdentityProviders",
+							{
+								"Ref": "AWS::NoValue"
+							},
+							{
+								"Ref": "CognitoIdentityProviders"
+							}
+						]
+					},
+					"DeveloperProviderName": {
+						"Fn::If": [
+							"EMPTY_DeveloperProviderName",
+							{
+								"Ref": "AWS::NoValue"
+							},
+							{
+								"Ref": "DeveloperProviderName"
+							}
+						]
+					},
+					"OpenIdConnectProviderARNs": {
+						"Fn::If": [
+							"EMPTY_OpenIdConnectProviderARNs",
+							{
+								"Ref": "AWS::NoValue"
+							},
+							{
+								"Ref": "OpenIdConnectProviderARNs"
+							}
+						]
+					},
+					"SupportedLoginProviders": {
+						"Fn::If": [
+							"EMPTY_SupportedLoginProviders",
+							{
+								"Ref": "AWS::NoValue"
+							},
+							{
+								"Ref": "SupportedLoginProviders"
+							}
+						]
+					}
+				}
+			}
+		},
+		"CognitoAuthenticatedRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Federated": "cognito-identity.amazonaws.com"
+							},
+							"Action": "sts:AssumeRoleWithWebIdentity",
+							"Condition": {
+								"StringEquals": {
+									"cognito-identity.amazonaws.com:aud": {
+										"Fn::GetAtt": [
+											"CognitoIdentityPool",
+											"IdentityPoolId"
+										]
+									}
+								},
+								"ForAnyValue:StringLike": {
+									"cognito-identity.amazonaws.com:amr": "authenticated"
+								}
+							}
+						}
+					]
+				}
+			}
+		},
+		"CognitoUnauthenticatedRole": {
+			"Type": "AWS::IAM::Role",
+			"Condition": "UseUnauthenticatedIdentities",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Federated": "cognito-identity.amazonaws.com"
+							},
+							"Action": "sts:AssumeRoleWithWebIdentity",
+							"Condition": {
+								"StringEquals": {
+									"cognito-identity.amazonaws.com:aud": {
+										"Fn::GetAtt": [
+											"CognitoIdentityPool",
+											"IdentityPoolId"
+										]
+									}
+								},
+								"ForAnyValue:StringLike": {
+									"cognito-identity.amazonaws.com:amr": "unauthenticated"
+								}
+							}
+						}
+					]
+				}
+			}
+		},
+		"CognitoIdentityPoolRoles": {
+			"Type": "Custom::CognitoIdentityPoolRoles",
+			"Properties": {
+				"ServiceToken": {
+					"Fn::GetAtt": [
+						"Lambda",
+						"Arn"
+					]
+				},
+				"Options": {
+					"IdentityPoolId": {
+						"Fn::GetAtt": [
+							"CognitoIdentityPool",
+							"IdentityPoolId"
+						]
+					},
+					"Roles": {
+						"authenticated": {
+							"Fn::GetAtt": [
+								"CognitoAuthenticatedRole",
+								"Arn"
+							]
+						},
+						"unauthenticated": {
+							"Fn::If": [
+								"UseUnauthenticatedIdentities",
+								{
+									"Fn::GetAtt": [
+										"CognitoUnauthenticatedRole",
+										"Arn"
+									]
+								},
+								{
+									"Ref" : "AWS::NoValue"
+								}
+							]
+						}
+					}
+				}
+			}
+		}
+	},
+	"Outputs": {
+		"CognitoAuthenticatedRoleName": {
+			"Value": {
+				"Ref": "CognitoAuthenticatedRole"
+			}
+		},
+		"CognitoUnauthenticatedRoleName": {
+			"Value": {
+				"Fn::If": [
+					"UseUnauthenticatedIdentities",
+					{
+						"Ref": "CognitoUnauthenticatedRole"
+					},
+					""
+				]
+			}
+		}
+	}
+}

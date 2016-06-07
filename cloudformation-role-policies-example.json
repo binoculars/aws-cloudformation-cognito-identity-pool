@@ -1,0 +1,87 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Parameters": {
+		"CognitoAuthenticatedRoleName": {
+			"Type": "String",
+			"MinLength": 1,
+			"Description": "The name of the Cognito Authenticated Role"
+		},
+		"CognitoUnauthenticatedRoleName": {
+			"Type": "String",
+			"Default": "",
+			"Description": "The name of the Cognito Unauthenticated Role"
+		}
+	},
+	"Conditions": {
+		"UseUnauthenticatedIdentities": {
+			"Fn::Not": [
+				{
+					"Fn::Equals": [
+						{
+							"Ref": "CognitoUnauthenticatedRoleName"
+						},
+						""
+					]
+				}
+			]
+		}
+	},
+	"Resources": {
+		"CognitoAuthenticatedRolePolicy": {
+			"Type": "AWS::IAM::ManagedPolicy",
+			"Properties": {
+				"Description": "Policy for the Authenicated Role",
+				"Path" : "/",
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Action": [
+								"mobileanalytics:PutEvents",
+								"cognito-sync:*",
+								"cognito-identity:*"
+							],
+							"Resource": [
+								"*"
+							]
+						}
+					]
+				},
+				"Roles": [
+					{
+						"Ref": "CognitoAuthenticatedRoleName"
+					}
+				]
+			}
+		},
+		"CognitoUnauthenticatedRolePolicy": {
+			"Type": "AWS::IAM::ManagedPolicy",
+			"Condition" : "UseUnauthenticatedIdentities",
+			"Properties": {
+				"Description": "Policy for the Unauthenicated Role",
+				"Path" : "/",
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Action": [
+								"mobileanalytics:PutEvents",
+								"cognito-sync:*"
+							],
+							"Resource": [
+								"*"
+							]
+						}
+					]
+				},
+				"Roles": [
+					{
+						"Ref": "CognitoUnauthenticatedRoleName"
+					}
+				]
+			}
+		}
+	}
+}
