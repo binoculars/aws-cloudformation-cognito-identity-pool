@@ -58,8 +58,7 @@ exports.handler = (event, context, callback) => {
 			}
 		};
 		
-	 	return new Promise(
-	 		(resolve, reject) => {
+	 	return new Promise((resolve, reject) => {
 				const request = https
 					.request(options, resolve);
 			

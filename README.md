@@ -4,6 +4,8 @@
 ### Background
 Cognito Identity Pools are not currently supported within CloudFormation templates. However, CloudFormation provides extensibility via Custom Resources, which enable Create/Update/Delete operations. This is meant to replace having to manually create Cognito Identity Pools manually via the CLI or web console.
 
+> See the related [blog post](https://medium.com/@barrettharber/polyfilling-aws-cloudformation-with-a-lambda-backed-custom-resource-a907f65144d5#.fnl9giwg1) for more information.
+
 ### Quick Start
 
 1. Ensure you have node.js >= 4 installed (preferrably via nvm)

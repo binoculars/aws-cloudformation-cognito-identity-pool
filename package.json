@@ -4,7 +4,7 @@
   "private": true,
   "description": "AWS Cloudformation Lambda-backed Custom Resource to Create/Update/Delete Cognito Identity Pools",
   "engines": {
-    "node" : ">=4"
+    "node": ">=4"
   },
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,7 @@
   "devDependencies": {
     "aws-sdk": "2.3.8",
     "del": "^2.2.0",
+    "gulp": "^3.9.1",
     "gulp-install": "^0.6.0",
     "gulp-zip": "^3.2.0",
     "mocha": "^2.5.3",
