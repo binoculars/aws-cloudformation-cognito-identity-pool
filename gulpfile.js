@@ -140,12 +140,19 @@ gulp.task('updateCode', () => cloudFormation
 	)
 );
 
-// Builds the function and uploads
-gulp.task('build-upload', cb => {
+gulp.task('build', cb => {
 	return runSequence(
 		'clean',
 		['js', 'npm'],
 		'zip',
+		cb
+	);
+});
+
+// Builds the function and uploads
+gulp.task('build-upload', cb => {
+	return runSequence(
+		'build',
 		'upload',
 		cb
 	);
