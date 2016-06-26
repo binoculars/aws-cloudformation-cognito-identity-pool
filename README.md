@@ -16,6 +16,7 @@ Cognito Identity Pools are not currently supported within CloudFormation templat
 1. Run `npm install`
 1. Create an S3 bucket to hold your Lambda Function (skip this if you already have one)
 1. Create `config.json` (see below)
+1. Ensure you have the [AWS SDK for Node.js configured](https://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html) correctly. Also, set the `AWS_REGION` environment variable.
 1. Run `gulp` this will:
   1. Build the Lambda function and place it in dist.zip
   1. Upload the function to S3
@@ -31,7 +32,6 @@ Create a `config.json` file. See [The AWS-SDK for JavaScript docs on CognitoIden
 	"AllowUnauthenticatedIdentities": false,
 	"LambdaS3Bucket": "bucket-name",
 	"LambdaS3Key": "CloudFormation-CustomResource-CognitoIdentityPool.zip"
-	
 }
 ```
 
