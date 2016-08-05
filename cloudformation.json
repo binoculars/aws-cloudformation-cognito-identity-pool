@@ -327,11 +327,22 @@
 	},
 	"Outputs": {
 		"CognitoAuthenticatedRoleName": {
+			"Description": "The name of the Cognito Authenticated Role",
 			"Value": {
 				"Ref": "CognitoAuthenticatedRole"
 			}
 		},
+		"CognitoAuthenticatedRoleArn": {
+			"Description": "The ARN of the Cognito Authenticated Role",
+			"Value": {
+				"Fn::GetAtt": [
+					"CognitoAuthenticatedRole",
+					"Arn"
+				]
+			}
+		},
 		"CognitoUnauthenticatedRoleName": {
+			"Description": "The name of the Cognito Unauthenticated Role",
 			"Value": {
 				"Fn::If": [
 					"UseUnauthenticatedIdentities",
@@ -341,6 +352,22 @@
 					""
 				]
 			}
+		},
+		"CognitoUnauthenticatedRoleArn": {
+			"Description": "The ARN of the Cognito Unauthenticated Role",
+			"Value": {
+				"Fn::If": [
+					"UseUnauthenticatedIdentities",
+					{
+						"Fn::GetAtt": [
+							"CognitoUnauthenticatedRole",
+							"Arn"
+						]
+					},
+					""
+				]
+			}
 		}
+		
 	}
 }
