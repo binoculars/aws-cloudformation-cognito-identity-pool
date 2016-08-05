@@ -50,12 +50,13 @@ gulp.task('zip', () => gulp
 	.pipe(gulp.dest('./'))
 );
 
-gulp.task('upload', cb => s3
-	.upload({
+gulp.task('upload', s3
+	.putObject({
 		Bucket: config.LambdaS3Bucket,
 		Key: config.LambdaS3Key,
 		Body: fs.createReadStream('./dist.zip')
-	}, cb)
+	})
+	.promise()
 );
 
 gulp.task('listStacks', () => cloudFormation
