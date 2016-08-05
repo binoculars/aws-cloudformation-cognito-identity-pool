@@ -182,20 +182,20 @@ describe('Cognito Identity Pool Roles', () => {
 			iam
 				.createRole({
 					AssumeRolePolicyDocument: JSON.stringify({
-						"Version": "2012-10-17",
-						"Statement": [
+						'Version': '2012-10-17',
+						'Statement': [
 							{
-								"Effect": "Allow",
-								"Principal": {
-									"Federated": "cognito-identity.amazonaws.com"
+								'Effect': 'Allow',
+								'Principal': {
+									'Federated': 'cognito-identity.amazonaws.com'
 								},
-								"Action": "sts:AssumeRoleWithWebIdentity",
-								"Condition": {
-									"StringEquals": {
-										"cognito-identity.amazonaws.com:aud": ""
+								'Action': 'sts:AssumeRoleWithWebIdentity',
+								'Condition': {
+									'StringEquals': {
+										'cognito-identity.amazonaws.com:aud': ''
 									},
-									"ForAnyValue:StringLike": {
-										"cognito-identity.amazonaws.com:amr": "authenticated"
+									'ForAnyValue:StringLike': {
+										'cognito-identity.amazonaws.com:amr': 'authenticated'
 									}
 								}
 							}

@@ -1,7 +1,7 @@
 'use strict';
 
-const https = require("https");
-const url = require("url");
+const https = require('https');
+const url = require('url');
 const AWS = require('aws-sdk');
 const cognitoidentity = new AWS.CognitoIdentity();
 const SUCCESS = 'SUCCESS';
@@ -36,16 +36,16 @@ exports.handler = (event, context, callback) => {
 	function respond(responseStatus, responseData, physicalResourceId) {
 		const responseBody = JSON.stringify({
 			Status: responseStatus,
-			Reason: "See the details in CloudWatch Log Stream: " + context.logStreamName,
+			Reason: `See the details in CloudWatch Log Stream: ${context.logStreamName}`,
 			PhysicalResourceId: physicalResourceId || context.logStreamName,
 			StackId: event.StackId,
 			RequestId: event.RequestId,
 			LogicalResourceId: event.LogicalResourceId,
 			Data: responseData
 		});
-
+		
 		console.log('Response body:\n', responseBody);
-
+		
 		const parsedUrl = url.parse(event.ResponseURL);
 		const options = {
 			hostname: parsedUrl.hostname,
@@ -58,16 +58,16 @@ exports.handler = (event, context, callback) => {
 			}
 		};
 		
-	 	return new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => {
 				const request = https
 					.request(options, resolve);
 			
 				request.on('error', error => reject(`send(..) failed executing https.request(..): ${error}`));
 				request.write(responseBody);
 				request.end();
-		 	})
-	 		.then(() => callback(responseStatus === FAILED ? responseStatus : null, responseData))
-	 		.catch(callback);
+			})
+			.then(() => callback(responseStatus === FAILED ? responseStatus : null, responseData))
+			.catch(callback);
 	}
 	
 	if (!~requestTypes.indexOf(event.RequestType))
