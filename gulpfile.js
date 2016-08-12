@@ -16,6 +16,7 @@ let config;
 try {
 	config = require('./config.json');
 } catch (ex) {
+	console.error('Cannot load configuration');
 	config = {};
 }
 
@@ -50,7 +51,7 @@ gulp.task('zip', () => gulp
 	.pipe(gulp.dest('./'))
 );
 
-gulp.task('upload', s3
+gulp.task('upload', () => s3
 	.putObject({
 		Bucket: config.LambdaS3Bucket,
 		Key: config.LambdaS3Key,
