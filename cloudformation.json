@@ -326,6 +326,15 @@
 		}
 	},
 	"Outputs": {
+		"IdentityPoolId": {
+			"Description": "The Identity Pool ID",
+			"Value": {
+				"Fn::GetAtt": [
+					"CognitoIdentityPool",
+					"IdentityPoolId"
+				]
+			}
+		},
 		"CognitoAuthenticatedRoleName": {
 			"Description": "The name of the Cognito Authenticated Role",
 			"Value": {
