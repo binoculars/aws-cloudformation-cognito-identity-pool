@@ -9,9 +9,8 @@ Cognito Identity Pools are not currently supported within CloudFormation templat
 > See the related [blog post](https://medium.com/@barrettharber/polyfilling-aws-cloudformation-with-a-lambda-backed-custom-resource-a907f65144d5#.fnl9giwg1) for more information.
 
 ### Quick Start
-
-1. Ensure you have node.js >= 4 installed (preferrably via nvm)
-1. Install gulp globally
+1. Ensure you have node.js >= 4 installed (preferably via nvm)
+1. Install gulp globally (`npm i -g gulp`)
 1. Clone this repository
 1. Run `npm install`
 1. Create an S3 bucket to hold your Lambda Function (skip this if you already have one)
@@ -31,8 +30,17 @@ Create a `config.json` file. See [The AWS-SDK for JavaScript docs on CognitoIden
 	"IdentityPoolName": "IdentityPoolName",
 	"AllowUnauthenticatedIdentities": false,
 	"LambdaS3Bucket": "bucket-name",
-	"LambdaS3Key": "CloudFormation-CustomResource-CognitoIdentityPool.zip"
+	"LambdaS3Key": "CloudFormation-CustomResource-CognitoIdentityPool.zip",
+	"DeveloperProviderName": "com.site"
 }
 ```
 
 All non-string values will be stringified for the CloudFormation template. If you're going to use the template directly (instead of using gulp), keep this in mind.
+
+### Testing
+1. Configure your environment
+  - Run npm install (`npm i`)
+  - Create your Lambda S3 Bucket
+  - Configure the AWS SDK for Node.js (or just set the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_REGION` environment variables)
+  - Create your `config.json`
+1. Run `npm test`
