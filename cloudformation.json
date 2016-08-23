@@ -32,6 +32,12 @@
 			"Default": "",
 			"Description": "Array<String> A list of OpendID Connect provider ARNs."
 		},
+		"SamlProviderARNs": {
+			"Type": "String",
+			"AllowedPattern": "^$|^\\[(,?\\\"arn:aws:iam::\\d{12}:saml-provider\\/[a-z0-9\\.]+\\\")+\\]$",
+			"Default": "",
+			"Description": "Array<String> An array of Amazon Resource Names (ARNs) of the SAML provider for your identity pool."
+		},
 		"SupportedLoginProviders": {
 			"Type": "String",
 			"AllowedPattern": "^$|^\\{(,?\\\"[a-z0-9\\.]+\\\":\\\".+\\\")+\\}$",
@@ -74,6 +80,14 @@
 			]
 		},
 		"EMPTY_OpenIdConnectProviderARNs": {
+			"Fn::Equals": [
+				{
+					"Ref": "OpenIdConnectProviderARNs"
+				},
+				""
+			]
+		},
+		"EMPTY_SamlProviderARNs": {
 			"Fn::Equals": [
 				{
 					"Ref": "OpenIdConnectProviderARNs"
@@ -205,6 +219,17 @@
 							},
 							{
 								"Ref": "OpenIdConnectProviderARNs"
+							}
+						]
+					},
+					"SamlProviderARNs": {
+						"Fn::If": [
+							"EMPTY_SamlProviderARNs",
+							{
+								"Ref": "AWS::NoValue"
+							},
+							{
+								"Ref": "SamlProviderARNs"
 							}
 						]
 					},

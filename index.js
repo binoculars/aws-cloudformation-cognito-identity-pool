@@ -26,7 +26,9 @@ const requestTypes = [
  * @param {!string} event.StackId
  * @param {!string} event.RequestId
  * @param {!string} event.LogicalResourceId
+ * @param {!string} event.PhysicalResourceId
  * @param {!Object} event.ResourceProperties
+ * @param {!Object} event.ResourceProperties.Options
  * @param {!Object} context
  * @param {!Requester~requestCallback} callback
  */
@@ -83,15 +85,18 @@ exports.handler = (event, context, callback) => {
 			
 			// CloudFormation passes the value as a string, so it must be converted to a valid javascript object
 			if (requestType !== 'Delete') {
-				[
+				const parseParams = [
 					'AllowUnauthenticatedIdentities',
 					'CognitoIdentityProviders',
 					'OpenIdConnectProviderARNs',
+					'SamlProviderARNs',
 					'SupportedLoginProviders'
-				].forEach(param => {
+				];
+
+				for (let param of parseParams) {
 					if (params[param])
 						params[param] = JSON.parse(params[param]);
-				});
+				}
 			}
 			
 			return cognitoidentity
@@ -109,6 +114,7 @@ exports.handler = (event, context, callback) => {
 				case 'Delete':
 					return respond(SUCCESS);
 			}
+			break;
 		default:
 			return respond(FAILED, UNKNOWN);
 	}
