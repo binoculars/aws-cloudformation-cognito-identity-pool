@@ -26,7 +26,7 @@ beforeEach(cb => {
 	s3.getSignedUrl(
 		'putObject',
 		{
-			Bucket: config.functionBucket,
+			Bucket: config.LambdaS3Bucket,
 			Key: `test/${packageInfo.name}.json`
 		},
 		(error, url) => {
