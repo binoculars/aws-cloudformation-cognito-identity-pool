@@ -92,17 +92,22 @@ exports.handler = (event, context, callback) => {
 					'SamlProviderARNs',
 					'SupportedLoginProviders'
 				];
-
-				for (let param of parseParams) {
-					if (params[param])
-						params[param] = JSON.parse(params[param]);
+				
+				try {
+					for (let param of parseParams) {
+						if (params[param])
+							params[param] = JSON.parse(params[param]);
+					}
+				} catch (ex) {
+					return respond(FAILED, {message: ex});
 				}
 			}
 			
 			return cognitoidentity
 				[`${requestType.toLowerCase()}IdentityPool`](params)
 				.promise()
-				.then(data => respond(SUCCESS, data, data.IdentityPoolId));
+				.then(data => respond(SUCCESS, data, data.IdentityPoolId))
+				.catch(error => respond(FAILED, {message: error}));
 		case 'CognitoIdentityPoolRoles':
 			switch (requestType) {
 				case 'Create':
@@ -110,7 +115,8 @@ exports.handler = (event, context, callback) => {
 					return cognitoidentity
 						.setIdentityPoolRoles(params)
 						.promise()
-						.then(data => respond(SUCCESS, data));
+						.then(data => respond(SUCCESS, data))
+						.catch(error => respond(FAILED, {message: error}));
 				case 'Delete':
 					return respond(SUCCESS);
 			}

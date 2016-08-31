@@ -12,6 +12,8 @@
 		"IdentityPoolName": {
 			"Type": "String",
 			"MinLength": 1,
+			"MaxLength": 128,
+			"AllowedPattern": "^\\w+$",
 			"Description": "The name for the Cognito Identity Pool"
 		},
 		"CognitoIdentityProviders": {
