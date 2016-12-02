@@ -30,7 +30,7 @@
 		"CognitoAuthenticatedRolePolicy": {
 			"Type": "AWS::IAM::ManagedPolicy",
 			"Properties": {
-				"Description": "Policy for the Authenicated Role",
+				"Description": "Policy for the Authenticated Role",
 				"Path" : "/",
 				"PolicyDocument": {
 					"Version": "2012-10-17",
@@ -59,7 +59,7 @@
 			"Type": "AWS::IAM::ManagedPolicy",
 			"Condition" : "UseUnauthenticatedIdentities",
 			"Properties": {
-				"Description": "Policy for the Unauthenicated Role",
+				"Description": "Policy for the Unauthenticated Role",
 				"Path" : "/",
 				"PolicyDocument": {
 					"Version": "2012-10-17",
