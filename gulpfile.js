@@ -68,15 +68,15 @@ gulp.task('listStacks', () => cloudFormation
 		]
 	})
 	.promise()
-	.then(data => console.log(data))
-	.catch(err => console.error(err))
+	.then(console.log)
+	.catch(console.error)
 );
 
 gulp.task('deployStack', () => {
 	return cloudFormation.describeStacks({
 		StackName: stackName
 	}, function(err) {
-		var operation = err ? 'createStack' : 'updateStack';
+		const operation = err ? 'createStack' : 'updateStack';
 
 		return cloudFormation[operation]({
 			StackName: stackName,
@@ -108,14 +108,13 @@ gulp.task('updateConfig', () => cloudFormation
 	.then(data => {
 		console.log(util.inspect(data, {depth:5}));
 		
-		let configParams = {
+		const configParams = {
 			'AccessKey': 'accessKeyId',
 			'AccessSecret': 'secretAccessKey'
 		};
-		
-		data.Stacks[0].Outputs.forEach(item => {
+
+		for (const item of data.Stacks[0].Outputs)
 			config[configParams[item.OutputKey]] = item.OutputValue;
-		});
 		
 		fs.writeFileSync(
 			'./config.json',
@@ -142,39 +141,39 @@ gulp.task('updateCode', () => cloudFormation
 	)
 );
 
-gulp.task('build', cb => {
-	return runSequence(
+gulp.task('build', cb =>
+	runSequence(
 		'clean',
 		['js', 'npm'],
 		'zip',
 		cb
-	);
-});
+	)
+);
 
 // Builds the function and uploads
-gulp.task('build-upload', cb => {
-	return runSequence(
+gulp.task('build-upload', cb =>
+	runSequence(
 		'build',
 		'upload',
 		cb
-	);
-});
+	)
+);
 
 // For an already created stack
-gulp.task('update', cb => {
-	return runSequence(
+gulp.task('update', cb =>
+	runSequence(
 		'updateConfig',
 		'build-upload',
 		'updateCode',
 		cb
-	);
-});
+	)
+);
 
 // For a new stack (or you change cloudformation.json)
-gulp.task('default', cb => {
-	return runSequence(
+gulp.task('default', cb =>
+	runSequence(
 		'build-upload',
 		'deployStack',
 		cb
-	);
-});
+	)
+);
