@@ -7,6 +7,7 @@
 [![Code Climate](https://codeclimate.com/github/binoculars/aws-cloudformation-cognito-identity-pool/badges/gpa.svg)](https://codeclimate.com/github/binoculars/aws-cloudformation-cognito-identity-pool)
 [![Test Coverage](https://codeclimate.com/github/binoculars/aws-cloudformation-cognito-identity-pool/badges/coverage.svg)](https://codeclimate.com/github/binoculars/aws-cloudformation-cognito-identity-pool/coverage)
 [![Issue Count](https://codeclimate.com/github/binoculars/aws-cloudformation-cognito-identity-pool/badges/issue_count.svg)](https://codeclimate.com/github/binoculars/aws-cloudformation-cognito-identity-pool)
+[![Known Vulnerabilities](https://snyk.io/test/github/binoculars/aws-cloudformation-cognito-identity-pool/badge.svg)](https://snyk.io/test/github/binoculars/aws-cloudformation-cognito-identity-pool)
 
 ### Background
 Cognito Identity Pools are not currently supported within CloudFormation templates. However, CloudFormation provides extensibility via Custom Resources, which enable Create/Update/Delete operations. This is meant to replace having to manually create Cognito Identity Pools manually via the CLI or web console.
