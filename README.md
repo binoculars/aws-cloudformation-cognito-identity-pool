@@ -1,4 +1,6 @@
 # AWS CloudFormation Cognito Identity Pool
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/binoculars/aws-cloudformation-cognito-identity-pool.svg)](https://greenkeeper.io/)
 > An [AWS Lambda-backed Custom Resource](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-custom-resources-lambda.html) for CRUD operations on Cognito Identity Pools
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5149b6ed184b4775b3d0ef04c6a4e27f)](https://www.codacy.com/app/barrett-harber/aws-cloudformation-cognito-identity-pool?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=binoculars/aws-cloudformation-cognito-identity-pool&amp;utm_campaign=Badge_Grade)
