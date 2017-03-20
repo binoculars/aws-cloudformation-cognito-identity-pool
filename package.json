@@ -21,7 +21,7 @@
   "author": "Barrett K. Harber",
   "license": "Unlicense",
   "devDependencies": {
-    "aws-sdk": "2.28.0",
+    "aws-sdk": "2.29.0",
     "del": "^2.2.2",
     "gulp": "^3.9.1",
     "gulp-install": "^0.6.0",
