@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const util = require('util');
 const gulp = require('gulp');
 const del = require('del');
@@ -20,7 +21,7 @@ try {
 	config = {};
 }
 
-const stackName = 'cognito-identity-pool';
+const StackName = 'cognito-identity-pool';
 
 gulp.task('clean', () => del([
 	'./build/*',
@@ -51,10 +52,15 @@ gulp.task('zip', () => gulp
 	.pipe(gulp.dest('./'))
 );
 
+const {
+	LambdaS3Bucket,
+	LambdaS3Key
+} = process.env;
+
 gulp.task('upload', () => s3
 	.putObject({
-		Bucket: config.LambdaS3Bucket,
-		Key: config.LambdaS3Key,
+		Bucket: LambdaS3Bucket,
+		Key: LambdaS3Key,
 		Body: fs.createReadStream('./dist.zip')
 	})
 	.promise()
@@ -72,13 +78,18 @@ gulp.task('listStacks', () => cloudFormation
 	.catch(console.error)
 );
 
-gulp.task('deployStack', () => {
-	return cloudFormation.describeStacks({
-		StackName: stackName
-	}, function(err) {
-		const operation = err ? 'createStack' : 'updateStack';
+function getCloudFormationOperation(StackName) {
+	return cloudFormation
+		.describeStacks({
+			StackName
+		})
+		.promise()
+		.then(() => 'updateStack')
+		.catch(() => 'createStack');
+}
 
-		return cloudFormation[operation]({
+gulp.task('deployStack', () => getCloudFormationOperation(stackName)
+	.then(() => cloudFormation[operation]({
 			StackName: stackName,
 			Capabilities: [
 				'CAPABILITY_IAM'
@@ -92,10 +103,10 @@ gulp.task('deployStack', () => {
 			TemplateBody: fs.readFileSync('./cloudformation.json', {encoding: 'utf8'})
 		})
 			.promise()
-			.then(console.log)
-			.catch(console.error);
-	});
-});
+	)
+	.then(console.log)
+	.catch(console.error)
+);
 
 gulp.task('updateConfig', () => cloudFormation
 	.waitFor(
@@ -127,15 +138,15 @@ gulp.task('updateConfig', () => cloudFormation
 // Once the stack is deployed, this will update the function if the code is changed without recreating the stack
 gulp.task('updateCode', () => cloudFormation
 	.describeStackResource({
-		StackName: stackName,
+		StackName,
 		LogicalResourceId: 'Lambda'
 	})
 	.promise()
-	.then(data => lambda
+	.then(({StackResourceDetail: PhysicalResourceId}) => lambda
 		.updateFunctionCode({
-			FunctionName: data.StackResourceDetail.PhysicalResourceId,
-			S3Bucket: config.LambdaS3Bucket,
-			S3Key: config.LambdaS3Key
+			FunctionName: PhysicalResourceId,
+			S3Bucket: LambdaS3Bucket,
+			S3Key: LambdaS3Key
 		})
 		.promise()
 	)
@@ -177,3 +188,107 @@ gulp.task('default', cb =>
 		cb
 	)
 );
+
+function printEventsAndWaitFor(condition, StackName) {
+	let lastEvent;
+
+	// Print the stack events while we're waiting for the stack to complete
+	const interval = setInterval(
+		() => cloudFormation
+			.describeStackEvents({
+				StackName
+			})
+			.promise()
+			.then(({StackEvents}) => {
+				const newEvents = [];
+
+				for (const stackEvent of StackEvents) {
+					if (stackEvent.EventId === lastEvent || stackEvent.Timestamp < now)
+						break;
+
+					newEvents.unshift(stackEvent);
+				}
+
+				for (const stackEvent of newEvents) {
+					console.log(
+						lib.stackEventToRow(stackEvent)
+					);
+				}
+
+				// Timeout of 15 minutes
+				if (new Date() - now > 9e5)
+					process.exit(1);
+
+				const [firstItem] = StackEvents;
+
+				if (firstItem)
+					lastEvent = firstItem.EventId;
+			})
+			.catch(() => clearInterval(interval)),
+		5e3 // 5 seconds
+	);
+
+	console.log(lib.head);
+
+	return cloudFormation
+		.waitFor(condition, {
+			StackName
+		})
+		.promise()
+		.then(() => {
+			clearInterval(interval);
+			console.log(lib.table.borderBottom);
+		});
+}
+
+const ciStackName = `CI-for-${StackName}`;
+
+gulp.task('ci-bootstrap', () => {
+	const StackName = ciStackName;
+
+	const outputEnvMap = new Map([
+		['CIUserAccessKey', 'AWS_ACCESS_KEY_ID'],
+		['CIUserSecretKey', 'AWS_SECRET_ACCESS_KEY'],
+		['CIRegion', 'AWS_REGION'],
+		['Bucket', 'CFN_S3_BUCKET'],
+		['CognitoRole', 'ROLE_ARN']
+	]);
+
+	return getCloudFormationOperation(StackName)
+		.then((operation) => cloudFormation[operation]({
+				StackName,
+				Capabilities: [
+					'CAPABILITY_NAMED_IAM'
+				],
+				TemplateBody: fs.readFileSync(
+					path.join(
+						__dirname,
+						'tests/bootstrap.template'
+					),
+					{
+						encoding: 'utf8'
+					}
+				)
+			})
+				.promise()
+				.then(() => `stack${operation === 'createStack' ? 'Create' : 'Update'}Complete`)
+		)
+		.then(condition => cloudFormation
+			.waitFor(condition, {
+				StackName
+			})
+			.promise()
+		)
+		.catch(console.error)
+		.then(() => cloudFormation
+			.describeStacks({
+				StackName
+			})
+			.promise()
+		)
+		.then(({Stacks: [{Outputs}]}) => console.log(
+			Outputs
+				.map(({OutputKey, OutputValue}) => `${outputEnvMap.get(OutputKey)}=${OutputValue}`)
+				.join('\n')
+		));
+});

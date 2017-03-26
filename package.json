@@ -4,11 +4,11 @@
   "private": true,
   "description": "AWS Cloudformation Lambda-backed Custom Resource to Create/Update/Delete Cognito Identity Pools",
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "main": "index.js",
   "scripts": {
-    "test": "`npm bin`/mocha test.js"
+    "test": "mocha tests/**/*.js"
   },
   "keywords": [
     "aws",

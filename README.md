@@ -11,16 +11,19 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/binoculars/aws-cloudformation-cognito-identity-pool/badge.svg)](https://snyk.io/test/github/binoculars/aws-cloudformation-cognito-identity-pool)
 [![Greenkeeper badge](https://badges.greenkeeper.io/binoculars/aws-cloudformation-cognito-identity-pool.svg)](https://greenkeeper.io/)
 
+- Master: [![CircleCI](https://circleci.com/gh/binoculars/aws-cloudformation-cognito-identity-pool/tree/master.svg?style=svg)](https://circleci.com/gh/binoculars/aws-cloudformation-cognito-identity-pool/tree/master)
+- Develop: [![CircleCI](https://circleci.com/gh/binoculars/aws-cloudformation-cognito-identity-pool/tree/develop.svg?style=svg)](https://circleci.com/gh/binoculars/aws-cloudformation-cognito-identity-pool/tree/develop)
+
 ### Background
 Cognito Identity Pools are not currently supported within CloudFormation templates. However, CloudFormation provides extensibility via Custom Resources, which enable Create/Update/Delete operations. This is meant to replace having to manually create Cognito Identity Pools manually via the CLI or web console.
 
 > See the related [blog post](https://medium.com/@barrettharber/polyfilling-aws-cloudformation-with-a-lambda-backed-custom-resource-a907f65144d5#.fnl9giwg1) for more information.
 
 ### Quick Start
-1. Ensure you have node.js >= 4 installed (preferably via nvm)
-1. Install gulp globally (`npm i -g gulp`)
+1. Ensure you have node.js >= 6 installed (preferably via nvm)
+1. Install gulp globally (`yarn global add gulp`)
 1. Clone this repository
-1. Run `npm install`
+1. Run `yarn`
 1. Create an S3 bucket to hold your Lambda Function (skip this if you already have one)
 1. Create `config.json` (see below)
 1. Ensure you have the [AWS SDK for Node.js configured](https://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html) correctly. Also, set the `AWS_REGION` environment variable.
@@ -47,8 +50,8 @@ All non-string values will be stringified for the CloudFormation template. If yo
 
 ### Testing
 1. Configure your environment
-  - Run npm install (`npm i`)
+  - Run yarn install (`yarn`)
   - Create your Lambda S3 Bucket
   - Configure the AWS SDK for Node.js (or just set the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_REGION` environment variables)
   - Create your `config.json`
-1. Run `npm test`
+1. Run `yarn test`

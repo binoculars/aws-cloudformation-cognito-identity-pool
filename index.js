@@ -2,18 +2,18 @@
 
 const https = require('https');
 const url = require('url');
-const AWS = require('aws-sdk');
-const cognitoidentity = new AWS.CognitoIdentity();
+const CognitoIdentity = require('aws-sdk/clients/cognitoidentity');
+const cognitoidentity = new CognitoIdentity();
 const SUCCESS = 'SUCCESS';
 const FAILED = 'FAILED';
 const UNKNOWN = {
 	Error: 'Unknown operation'
 };
-const requestTypes = [
+const validRequestTypes = new Set([
 	'Create',
 	'Update',
 	'Delete'
-];
+]);
 
 /**
  * The Lambda function handler
@@ -34,25 +34,37 @@ const requestTypes = [
  */
 exports.handler = (event, context, callback) => {
 	console.log(event, context);
+
+	const {
+		StackId,
+		RequestId,
+		LogicalResourceId,
+		PhysicalResourceId,
+		RequestType,
+		ResponseURL,
+		ResourceProperties
+	} = event;
+
+	const {logStreamName} = context;
 	
-	function respond(responseStatus, responseData, physicalResourceId) {
+	function respond(Status, Data, PhysicalResourceId=logStreamName) {
 		const responseBody = JSON.stringify({
-			Status: responseStatus,
-			Reason: `See the details in CloudWatch Log Stream: ${context.logStreamName}`,
-			PhysicalResourceId: physicalResourceId || context.logStreamName,
-			StackId: event.StackId,
-			RequestId: event.RequestId,
-			LogicalResourceId: event.LogicalResourceId,
-			Data: responseData
+			Status,
+			Reason: `See the details in CloudWatch Log Stream: ${logStreamName}`,
+			PhysicalResourceId,
+			StackId,
+			RequestId,
+			LogicalResourceId,
+			Data
 		});
 		
 		console.log('Response body:\n', responseBody);
 		
-		const parsedUrl = url.parse(event.ResponseURL);
+		const {hostname, path} = url.parse(ResponseURL);
 		const options = {
-			hostname: parsedUrl.hostname,
+			hostname,
 			port: 443,
-			path: parsedUrl.path,
+			path,
 			method: 'PUT',
 			headers: {
 				'content-type': '',
@@ -68,23 +80,22 @@ exports.handler = (event, context, callback) => {
 				request.write(responseBody);
 				request.end();
 			})
-			.then(() => callback(responseStatus === FAILED ? responseStatus : null, responseData))
+			.then(() => callback(Status === FAILED ? Status : null, Data))
 			.catch(callback);
 	}
 	
-	if (!~requestTypes.indexOf(event.RequestType))
+	if (!validRequestTypes.has(RequestType))
 		return respond(FAILED, UNKNOWN);
+
+	const params = RequestType === 'Delete' ? {} : Object.assign({}, ResourceProperties.Options);
 	
-	const requestType = event.RequestType;
-	const params = requestType === 'Delete' ? {} : event.ResourceProperties.Options;
-	
-	switch (event.LogicalResourceId) {
+	switch (LogicalResourceId) {
 		case 'CognitoIdentityPool':
-			if (requestType !== 'Create')
-				params.IdentityPoolId = event.PhysicalResourceId;
+			if (RequestType !== 'Create')
+				params.IdentityPoolId = PhysicalResourceId;
 			
 			// CloudFormation passes the value as a string, so it must be converted to a valid javascript object
-			if (requestType !== 'Delete') {
+			if (RequestType !== 'Delete') {
 				const parseParams = [
 					'AllowUnauthenticatedIdentities',
 					'CognitoIdentityProviders',
@@ -98,25 +109,24 @@ exports.handler = (event, context, callback) => {
 						if (params[param])
 							params[param] = JSON.parse(params[param]);
 					}
-				} catch (ex) {
-					return respond(FAILED, {message: ex});
+				} catch (message) {
+					return respond(FAILED, {message});
 				}
 			}
 			
-			return cognitoidentity
-				[`${requestType.toLowerCase()}IdentityPool`](params)
+			return cognitoidentity[`${RequestType.toLowerCase()}IdentityPool`](params)
 				.promise()
 				.then(data => respond(SUCCESS, data, data.IdentityPoolId))
-				.catch(error => respond(FAILED, {message: error}));
+				.catch(message => respond(FAILED, {message}));
 		case 'CognitoIdentityPoolRoles':
-			switch (requestType) {
+			switch (RequestType) {
 				case 'Create':
 				case 'Update':
 					return cognitoidentity
 						.setIdentityPoolRoles(params)
 						.promise()
 						.then(data => respond(SUCCESS, data))
-						.catch(error => respond(FAILED, {message: error}));
+						.catch(message => respond(FAILED, {message}));
 				case 'Delete':
 					return respond(SUCCESS);
 			}
