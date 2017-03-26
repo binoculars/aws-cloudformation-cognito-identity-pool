@@ -189,58 +189,6 @@ gulp.task('default', cb =>
 	)
 );
 
-function printEventsAndWaitFor(condition, StackName) {
-	let lastEvent;
-
-	// Print the stack events while we're waiting for the stack to complete
-	const interval = setInterval(
-		() => cloudFormation
-			.describeStackEvents({
-				StackName
-			})
-			.promise()
-			.then(({StackEvents}) => {
-				const newEvents = [];
-
-				for (const stackEvent of StackEvents) {
-					if (stackEvent.EventId === lastEvent || stackEvent.Timestamp < now)
-						break;
-
-					newEvents.unshift(stackEvent);
-				}
-
-				for (const stackEvent of newEvents) {
-					console.log(
-						lib.stackEventToRow(stackEvent)
-					);
-				}
-
-				// Timeout of 15 minutes
-				if (new Date() - now > 9e5)
-					process.exit(1);
-
-				const [firstItem] = StackEvents;
-
-				if (firstItem)
-					lastEvent = firstItem.EventId;
-			})
-			.catch(() => clearInterval(interval)),
-		5e3 // 5 seconds
-	);
-
-	console.log(lib.head);
-
-	return cloudFormation
-		.waitFor(condition, {
-			StackName
-		})
-		.promise()
-		.then(() => {
-			clearInterval(interval);
-			console.log(lib.table.borderBottom);
-		});
-}
-
 const ciStackName = `CI-for-${StackName}`;
 
 gulp.task('ci-bootstrap', () => {
