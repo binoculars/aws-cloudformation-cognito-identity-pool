@@ -1,3 +1,4 @@
+# 1.0.0
 - meta: Start keeping a Changelog
 - feature: Add CI Boostrap template and gulp task
 - feature: Configure Circle CI
