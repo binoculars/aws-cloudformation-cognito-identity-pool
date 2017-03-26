@@ -1,11 +1,12 @@
 'use strict';
 
-const config = require('./config.json');
-const packageInfo = require('./package.json');
-const lambda = require('./index.js');
+const packageInfo = require('./../../package.json');
+const lambda = require('./../../index.js');
 const assert = require('assert');
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3();
+const cognitoidentity = new AWS.CognitoIdentity();
+const iam = new AWS.IAM();
 
 const today = new Date();
 const date = [
@@ -22,11 +23,16 @@ const context = {
 
 let ResponseURL;
 
+const {
+	CFN_S3_BUCKET: Bucket,
+	ROLE_ARN
+} = process.env;
+
 beforeEach(cb => {
 	s3.getSignedUrl(
 		'putObject',
 		{
-			Bucket: config.LambdaS3Bucket,
+			Bucket,
 			Key: `test/${packageInfo.name}.json`
 		},
 		(error, url) => {
@@ -48,7 +54,7 @@ describe('Cognito Identity Pool', () => {
 			DeveloperProviderName: 'TEST_PROVIDER_NAME'
 		}
 	};
-	let IdentityPoolId;
+	let PhysicalResourceId;
 	
 	describe('Create', () => {
 		it('should create a Cognito Identity Pool', cb => {
@@ -71,7 +77,7 @@ describe('Cognito Identity Pool', () => {
 					assert.strictEqual(data.IdentityPoolName, IdentityPoolName);
 					assert.strictEqual(data.AllowUnauthenticatedIdentities, ResourceProperties.Options.DeveloperProviderName === 'true');
 					assert.strictEqual(data.DeveloperProviderName, ResourceProperties.Options.DeveloperProviderName);
-					IdentityPoolId = data.IdentityPoolId;
+					PhysicalResourceId = data.IdentityPoolId;
 					cb();
 				}
 			);
@@ -87,7 +93,7 @@ describe('Cognito Identity Pool', () => {
 					StackId,
 					RequestId,
 					LogicalResourceId,
-					PhysicalResourceId: IdentityPoolId,
+					PhysicalResourceId,
 					RequestType: 'Update',
 					ResourceProperties
 				},
@@ -115,7 +121,7 @@ describe('Cognito Identity Pool', () => {
 					StackId,
 					RequestId,
 					LogicalResourceId,
-					PhysicalResourceId: IdentityPoolId,
+					PhysicalResourceId,
 					RequestType: 'Delete',
 					ResourceProperties
 				},
@@ -139,7 +145,7 @@ describe('Cognito Identity Pool', () => {
 					StackId,
 					RequestId,
 					LogicalResourceId,
-					PhysicalResourceId: IdentityPoolId,
+					PhysicalResourceId,
 					RequestType: 'UNKNOWN',
 					ResourceProperties
 				},
@@ -156,19 +162,17 @@ describe('Cognito Identity Pool', () => {
 });
 
 describe('Cognito Identity Pool Roles', () => {
-	const cognitoidentity = new AWS.CognitoIdentity();
-	const iam = new AWS.IAM();
 	const LogicalResourceId = 'CognitoIdentityPoolRoles';
 	const ResourceProperties = {
 		Options: {
 			Roles: {
-				authenticated: ''
+				authenticated: ROLE_ARN
 			}
 		}
 	};
+	const {Options} = ResourceProperties;
 	const RoleName = 'TEST_ROLE';
-	let IdentityPoolId;
-	
+
 	before(() => Promise
 		.all([
 			cognitoidentity
@@ -178,20 +182,20 @@ describe('Cognito Identity Pool Roles', () => {
 					DeveloperProviderName: 'devauth'
 				})
 				.promise()
-				.then(data => IdentityPoolId = ResourceProperties.Options.IdentityPoolId = data.IdentityPoolId),
-			iam
+				.then(({IdentityPoolId}) => Object.assign(ResourceProperties.Options, {IdentityPoolId})),
+			ROLE_ARN ? Promise.resolve() : iam
 				.createRole({
 					AssumeRolePolicyDocument: JSON.stringify({
-						'Version': '2012-10-17',
-						'Statement': [
+						Version: '2012-10-17',
+						Statement: [
 							{
-								'Effect': 'Allow',
-								'Principal': {
-									'Federated': 'cognito-identity.amazonaws.com'
+								Effect: 'Allow',
+								Principal: {
+									Federated: 'cognito-identity.amazonaws.com'
 								},
-								'Action': 'sts:AssumeRoleWithWebIdentity',
-								'Condition': {
-									'StringEquals': {
+								Action: 'sts:AssumeRoleWithWebIdentity',
+								Condition: {
+									StringEquals: {
 										'cognito-identity.amazonaws.com:aud': ''
 									},
 									'ForAnyValue:StringLike': {
@@ -204,7 +208,7 @@ describe('Cognito Identity Pool Roles', () => {
 					RoleName
 				})
 				.promise()
-				.then(data => ResourceProperties.Options.Roles.authenticated = data.Arn)
+				.then(({Arn}) => Options.Roles.authenticated = Arn)
 		])
 	);
 	
@@ -286,7 +290,6 @@ describe('Cognito Identity Pool Roles', () => {
 					StackId,
 					RequestId,
 					LogicalResourceId,
-					PhysicalResourceId: IdentityPoolId,
 					RequestType: 'UNKNOWN',
 					ResourceProperties
 				},
@@ -305,10 +308,10 @@ describe('Cognito Identity Pool Roles', () => {
 		.all([
 			cognitoidentity
 				.deleteIdentityPool({
-					IdentityPoolId
+					IdentityPoolId: Options.IdentityPoolId
 				})
 				.promise(),
-			iam
+			ROLE_ARN ? Promise.resolve() : iam
 				.deleteRole({
 					RoleName
 				})
