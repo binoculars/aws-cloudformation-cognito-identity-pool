@@ -1,3 +1,5 @@
+/* eslint-env node, mocha */
+
 'use strict';
 
 const packageInfo = require('./../../package.json');

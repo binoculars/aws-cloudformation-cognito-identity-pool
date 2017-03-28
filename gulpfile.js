@@ -88,9 +88,9 @@ function getCloudFormationOperation(StackName) {
 		.catch(() => 'createStack');
 }
 
-gulp.task('deployStack', () => getCloudFormationOperation(stackName)
-	.then(() => cloudFormation[operation]({
-			StackName: stackName,
+gulp.task('deployStack', () => getCloudFormationOperation(StackName)
+	.then(operation => cloudFormation[operation]({
+			StackName,
 			Capabilities: [
 				'CAPABILITY_IAM'
 			],
@@ -112,7 +112,7 @@ gulp.task('updateConfig', () => cloudFormation
 	.waitFor(
 		'stackCreateComplete',
 		{
-			StackName: stackName
+			StackName
 		}
 	)
 	.promise()

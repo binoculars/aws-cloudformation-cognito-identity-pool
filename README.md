@@ -10,6 +10,7 @@
 [![Issue Count](https://codeclimate.com/github/binoculars/aws-cloudformation-cognito-identity-pool/badges/issue_count.svg)](https://codeclimate.com/github/binoculars/aws-cloudformation-cognito-identity-pool)
 [![Known Vulnerabilities](https://snyk.io/test/github/binoculars/aws-cloudformation-cognito-identity-pool/badge.svg)](https://snyk.io/test/github/binoculars/aws-cloudformation-cognito-identity-pool)
 [![Greenkeeper badge](https://badges.greenkeeper.io/binoculars/aws-cloudformation-cognito-identity-pool.svg)](https://greenkeeper.io/)
+[![bitHound Code](https://www.bithound.io/github/binoculars/aws-cloudformation-cognito-identity-pool/badges/code.svg)](https://www.bithound.io/github/binoculars/aws-cloudformation-cognito-identity-pool)
 
 - Master: [![CircleCI](https://circleci.com/gh/binoculars/aws-cloudformation-cognito-identity-pool/tree/master.svg?style=svg)](https://circleci.com/gh/binoculars/aws-cloudformation-cognito-identity-pool/tree/master)
 - Develop: [![CircleCI](https://circleci.com/gh/binoculars/aws-cloudformation-cognito-identity-pool/tree/develop.svg?style=svg)](https://circleci.com/gh/binoculars/aws-cloudformation-cognito-identity-pool/tree/develop)
