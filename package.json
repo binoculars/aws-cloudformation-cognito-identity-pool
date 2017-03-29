@@ -1,6 +1,6 @@
 {
   "name": "aws-cloudformation-cognito-identity-pool",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "AWS Cloudformation Lambda-backed Custom Resource to Create/Update/Delete Cognito Identity Pools",
   "engines": {
