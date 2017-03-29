@@ -1,3 +1,4 @@
+# 1.0.1
 - bugfix: gulpfile deployment issue
 
 # 1.0.0
