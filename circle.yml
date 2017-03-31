@@ -7,9 +7,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install Yarn
-          command: npm i -g yarn
-      - run:
           name: Install Dependencies
           command: yarn --pure-lockfile
       - run:
