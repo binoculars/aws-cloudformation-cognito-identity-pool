@@ -8,14 +8,7 @@ jobs:
       - checkout
       - run:
           name: Install Yarn
-          command: |
-            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-              && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-              && apt-get update \
-              && apt-get install -y yarn \
-              && apt-get clean \
-              && apt-get autoremove -y \
-              && rm -rf /var/lib/apt/lists/*
+          command: npm i -g yarn
       - run:
           name: Install Dependencies
           command: yarn --pure-lockfile
