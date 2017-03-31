@@ -3,6 +3,7 @@ jobs:
   build:
     docker:
       - image: node:boron
+    working_directory: ~/aws-cloudformation-cognito-identity-pool
     steps:
       - checkout
       - run:
