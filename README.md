@@ -1,3 +1,5 @@
+❗️**DEPRECATED as of 2017-04-28. Please use [AWS::Cognito::IdentityPool](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-identitypool.html)**
+
 # AWS CloudFormation Cognito Identity Pool
 
 > An [AWS Lambda-backed Custom Resource](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-custom-resources-lambda.html) for CRUD operations on Cognito Identity Pools
