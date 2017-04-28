@@ -1,11 +1,14 @@
-machine:
-  node:
-    version: 6.10
-dependencies:
-  override:
-    - yarn
-  cache_directories:
-    - ~/.cache/yarn
-test:
-  override:
-    - yarn test
+version: 2
+jobs:
+  build:
+    docker:
+      - image: node:boron
+    working_directory: ~/aws-cloudformation-cognito-identity-pool
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: yarn --pure-lockfile
+      - run:
+          name: Test
+          command: yarn test
